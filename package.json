@@ -1,0 +1,26 @@
+{
+  "name": "refkit",
+  "version": "0.1.0",
+  "license": "MIT",
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "start": "bun src/index.ts",
+    "test": "bun test",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "bun src/db/migrate.ts",
+    "build:script": "bun scripts/build-script.ts"
+  },
+  "dependencies": {
+    "hono": "^4.6.0",
+    "drizzle-orm": "^0.36.0",
+    "postgres": "^3.4.4",
+    "bcryptjs": "^2.4.3",
+    "jose": "^5.9.3"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "drizzle-kit": "^0.27.0",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.7.0"
+  }
+}
