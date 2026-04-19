@@ -12,7 +12,9 @@ export async function runMigrations(): Promise<void> {
   console.log('Migrations applied')
 }
 
-runMigrations().catch((err) => {
-  console.error('Migration failed:', err)
-  process.exit(1)
-})
+if (import.meta.main) {
+  runMigrations().catch((err) => {
+    console.error('Migration failed:', err)
+    process.exit(1)
+  })
+}
