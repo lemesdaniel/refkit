@@ -12,6 +12,7 @@ services:
   db:
     image: postgres:16-alpine
     environment:
+      # IMPORTANT: Change these credentials before any non-local deployment
       POSTGRES_USER: refkit
       POSTGRES_PASSWORD: refkit
       POSTGRES_DB: refkit
