@@ -1,6 +1,7 @@
 // src/app.ts
 import { Hono } from 'hono'
 import type { RefkitPlugin } from './plugins/types'
+import { scriptRoute } from './routes/script'
 
 export function createApp(plugins: RefkitPlugin[] = []) {
   const app = new Hono()
@@ -10,7 +11,7 @@ export function createApp(plugins: RefkitPlugin[] = []) {
   }
 
   app.get('/health', (c) => c.json({ ok: true, version: '0.1.0' }))
+  app.route('/refkit.js', scriptRoute)
 
-  // Rotas adicionadas nas tasks seguintes
   return { app, plugins }
 }
