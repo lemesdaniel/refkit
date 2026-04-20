@@ -4,7 +4,9 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "strict": true,
-    "baseUrl": "."
+    "baseUrl": ".",
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx"
   },
   "include": ["src/**/*", "scripts/**/*"],
   "exclude": ["src-script", "node_modules", "public"]
