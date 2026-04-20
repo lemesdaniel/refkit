@@ -7,6 +7,7 @@ import { createEventsRoute } from './routes/events'
 import { adminRoute } from './routes/admin'
 import { affiliateRoute } from './routes/affiliate'
 import { joinRoute } from './routes/join'
+import { adminUiRoute } from './routes/admin-ui'
 
 export function createApp(plugins: RefkitPlugin[] = []) {
   const app = new Hono()
@@ -22,6 +23,7 @@ export function createApp(plugins: RefkitPlugin[] = []) {
   app.route('/admin', adminRoute)
   app.route('/affiliate', affiliateRoute)
   app.route('/join', joinRoute)
+  app.route('/panel', adminUiRoute)
 
   return { app, plugins }
 }
