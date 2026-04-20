@@ -31,6 +31,12 @@ export function createEventsRoute(plugins: RefkitPlugin[]) {
     }>()
     if (!body.event) return c.json({ error: 'event is required' }, 400)
 
+    if (body.revenue !== undefined && body.revenue !== null) {
+      if (typeof body.revenue !== 'number' || !isFinite(body.revenue) || body.revenue < 0) {
+        return c.json({ error: 'revenue must be a non-negative number' }, 400)
+      }
+    }
+
     // Attribution
     let affiliateId: string | null = null
     if (body.visitor_token) {

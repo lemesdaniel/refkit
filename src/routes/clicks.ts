@@ -23,7 +23,7 @@ clicksRoute.post('/', async (c) => {
       where: eq(affiliates.slug, body.slug),
     })
 
-    if (!affiliate || affiliate.status !== 'active') {
+    if (!affiliate || affiliate.status !== 'active' || affiliate.programId !== body.program_id) {
       return c.json({ ok: true })
     }
 
