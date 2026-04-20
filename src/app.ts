@@ -4,6 +4,7 @@ import type { RefkitPlugin } from './plugins/types'
 import { scriptRoute } from './routes/script'
 import { clicksRoute } from './routes/clicks'
 import { createEventsRoute } from './routes/events'
+import { adminRoute } from './routes/admin'
 
 export function createApp(plugins: RefkitPlugin[] = []) {
   const app = new Hono()
@@ -16,6 +17,7 @@ export function createApp(plugins: RefkitPlugin[] = []) {
   app.route('/refkit.js', scriptRoute)
   app.route('/click', clicksRoute)
   app.route('/e', createEventsRoute(plugins))
+  app.route('/admin', adminRoute)
 
   return { app, plugins }
 }
