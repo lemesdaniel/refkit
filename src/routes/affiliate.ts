@@ -1,8 +1,8 @@
 // src/routes/affiliate.ts
 import { Hono } from 'hono'
-import { eq, and, isNull } from 'drizzle-orm'
+import { eq, and, desc, sql } from 'drizzle-orm'
 import { db } from '../db'
-import { affiliates, magicLinks } from '../db/schema'
+import { affiliates, magicLinks, commissions, clicks } from '../db/schema'
 import { signJwt } from '../lib/jwt'
 import { sendEmail } from '../lib/email'
 import { env } from '../config'
@@ -71,7 +71,61 @@ affiliateRoute.get('/auth', async (c) => {
   return c.json({ token: jwt })
 })
 
-// GET /affiliate/dashboard — protected stub
+// GET /affiliate/dashboard — protected
 affiliateRoute.get('/dashboard', affiliateAuth, async (c) => {
+  const affiliateId = c.get('affiliateId') as string
+
+  const affiliate = await db.query.affiliates.findFirst({
+    where: eq(affiliates.id, affiliateId),
+    columns: { id: true, name: true, email: true, slug: true, status: true, payoutEmail: true },
+  })
+
+  if (!affiliate) return c.json({ error: 'Not found' }, 404)
+
+  const recentCommissions = await db
+    .select()
+    .from(commissions)
+    .where(eq(commissions.affiliateId, affiliateId))
+    .orderBy(desc(commissions.createdAt))
+    .limit(20)
+
+  const pendingRows = await db
+    .select({ total: sql<number>`coalesce(sum(${commissions.amount}), 0)` })
+    .from(commissions)
+    .where(and(eq(commissions.affiliateId, affiliateId), eq(commissions.status, 'pending')))
+
+  const paidRows = await db
+    .select({ total: sql<number>`coalesce(sum(${commissions.amount}), 0)` })
+    .from(commissions)
+    .where(and(eq(commissions.affiliateId, affiliateId), eq(commissions.status, 'paid')))
+
+  const clickRows = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(clicks)
+    .where(eq(clicks.affiliateId, affiliateId))
+
+  return c.json({
+    affiliate,
+    stats: {
+      totalPending: Number(pendingRows[0].total),
+      totalPaid: Number(paidRows[0].total),
+      clickCount: Number(clickRows[0].count),
+    },
+    commissions: recentCommissions,
+  })
+})
+
+// PATCH /affiliate/payout — update payout email
+affiliateRoute.patch('/payout', affiliateAuth, async (c) => {
+  const affiliateId = c.get('affiliateId') as string
+  const body = await c.req.json<{ payoutEmail?: string }>()
+
+  if (!body.payoutEmail) return c.json({ error: 'payoutEmail is required' }, 400)
+
+  await db
+    .update(affiliates)
+    .set({ payoutEmail: body.payoutEmail })
+    .where(eq(affiliates.id, affiliateId))
+
   return c.json({ ok: true })
 })

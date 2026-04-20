@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'bun:test'
 import { createApp } from '../src/app'
 import { db } from '../src/db'
 import { eq } from 'drizzle-orm'
-import { affiliates, magicLinks, program } from '../src/db/schema'
+import { affiliates, magicLinks, program, commissions, clicks, events } from '../src/db/schema'
 import { signJwt } from '../src/lib/jwt'
 
 const { app } = createApp([])
@@ -129,19 +129,77 @@ describe('GET /affiliate/auth', () => {
   })
 })
 
+async function getAffiliateToken(affId: string): Promise<string> {
+  const token = crypto.randomUUID()
+  await db.insert(magicLinks).values({
+    id: crypto.randomUUID(),
+    affiliateId: affId,
+    token,
+    expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+  })
+  const { app: authApp } = createApp([])
+  const res = await authApp.request(`/affiliate/auth?token=${token}`)
+  const body = await res.json() as { token: string }
+  return body.token
+}
+
 describe('GET /affiliate/dashboard', () => {
   it('blocks unauthenticated request (401)', async () => {
     const res = await app.request('/affiliate/dashboard')
     expect(res.status).toBe(401)
   })
 
-  it('allows authenticated affiliate', async () => {
-    const jwt = await signJwt({ sub: affiliateId, role: 'affiliate' }, '1h')
+  it('returns affiliate info and stats', async () => {
+    const jwt = await getAffiliateToken(affiliateId)
     const res = await app.request('/affiliate/dashboard', {
       headers: { Authorization: `Bearer ${jwt}` },
     })
     expect(res.status).toBe(200)
+    const body = await res.json() as any
+    expect(body.affiliate).toBeDefined()
+    expect(body.affiliate.id).toBe(affiliateId)
+    expect(body.affiliate.name).toBe('Test Affiliate')
+    expect(body.affiliate.email).toBe(testEmail)
+    expect(body.affiliate.slug).toBe(testSlug)
+    expect(typeof body.stats.totalPending).toBe('number')
+    expect(typeof body.stats.totalPaid).toBe('number')
+    expect(typeof body.stats.clickCount).toBe('number')
+    expect(Array.isArray(body.commissions)).toBe(true)
+  })
+})
+
+describe('PATCH /affiliate/payout', () => {
+  it('updates payout email successfully', async () => {
+    const jwt = await getAffiliateToken(affiliateId)
+    const res = await app.request('/affiliate/payout', {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ payoutEmail: 'payout@test.com' }),
+    })
+    expect(res.status).toBe(200)
     const body = await res.json() as { ok: boolean }
     expect(body.ok).toBe(true)
+
+    // Verify it was actually updated
+    const aff = await db.query.affiliates.findFirst({
+      where: eq(affiliates.id, affiliateId),
+    })
+    expect(aff!.payoutEmail).toBe('payout@test.com')
+  })
+
+  it('returns 400 when payoutEmail missing', async () => {
+    const jwt = await getAffiliateToken(affiliateId)
+    const res = await app.request('/affiliate/payout', {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({}),
+    })
+    expect(res.status).toBe(400)
   })
 })
