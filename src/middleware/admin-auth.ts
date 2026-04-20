@@ -10,6 +10,9 @@ export const adminAuth: MiddlewareHandler = async (c, next) => {
   const payload = await verifyJwt(token)
   if (!payload || payload.role !== 'admin') return c.json({ error: 'Unauthorized' }, 401)
 
-  c.set('adminId', payload.sub as string)
+  if (!payload.sub || typeof payload.sub !== 'string') {
+    return c.json({ error: 'Unauthorized' }, 401)
+  }
+  c.set('adminId', payload.sub)
   await next()
 }

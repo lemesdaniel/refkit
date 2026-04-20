@@ -20,7 +20,7 @@ adminRoute.post('/setup', async (c) => {
     return c.json({ error: 'Password must be at least 8 characters' }, 400)
   }
 
-  const passwordHash = await hash(body.password, 10)
+  const passwordHash = await hash(body.password, 12)
   await db.insert(adminUser).values({
     id: crypto.randomUUID(),
     email: env.ADMIN_EMAIL,
