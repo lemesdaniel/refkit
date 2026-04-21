@@ -221,11 +221,24 @@ O cloud roda suas próprias migrations que criam a tabela `workspaces`. As tabel
 
 ---
 
+## UI: Mesma experiência self-hosted e cloud
+
+O layout e as pages são idênticos entre self-hosted e cloud. Isso é intencional — permite conversão sem fricção do self-hosted para o cloud.
+
+O cloud importa e renderiza as mesmas pages JSX do core (`src/views/pages/admin/*`, `src/views/pages/affiliate/*`, `src/views/pages/join.tsx`). As diferenças são apenas:
+
+- **Login:** self-hosted mostra só campo de senha (1 admin fixo). Cloud mostra email + senha (workspace owner). O cloud tem sua própria `login.tsx` para o workspace.
+- **Middleware:** `adminCookieAuth` (core) → `workspaceCookieAuth` (cloud). Mesmo cookie name (`rk_admin`) para que as pages não precisem saber onde estão rodando.
+- **Queries:** cloud adiciona `WHERE program_id = ?` nas queries admin. As pages recebem os mesmos props — só veem dados filtrados.
+
+Resultado: afiliado e admin veem a mesma UI independente de self-hosted ou cloud.
+
+---
+
 ## Fora de escopo
 
 - Billing / Stripe
 - Planos e limites (eventos, afiliados)
 - Multi-member / roles
-- Frontend dedicado (usa pages do core)
 - Custom domain por workspace
 - Email transacional cloud-specific
