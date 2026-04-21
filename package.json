@@ -2,6 +2,17 @@
   "name": "refkit",
   "version": "0.1.0",
   "license": "MIT",
+  "exports": {
+    ".": "./src/index.ts",
+    "./app": "./src/app.ts",
+    "./db": "./src/db/index.ts",
+    "./db/schema": "./src/db/schema.ts",
+    "./db/migrate": "./src/db/migrate.ts",
+    "./plugins/types": "./src/plugins/types.ts",
+    "./lib/jwt": "./src/lib/jwt.ts",
+    "./lib/email": "./src/lib/email.ts",
+    "./config": "./src/config.ts"
+  },
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "start": "bun src/index.ts",
