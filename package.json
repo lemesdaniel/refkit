@@ -11,7 +11,17 @@
     "./plugins/types": "./src/plugins/types.ts",
     "./lib/jwt": "./src/lib/jwt.ts",
     "./lib/email": "./src/lib/email.ts",
-    "./config": "./src/config.ts"
+    "./config": "./src/config.ts",
+    "./views/layout": "./src/views/layout.tsx",
+    "./views/pages/admin/dashboard": "./src/views/pages/admin/dashboard.tsx",
+    "./views/pages/admin/program": "./src/views/pages/admin/program.tsx",
+    "./views/pages/admin/affiliates": "./src/views/pages/admin/affiliates.tsx",
+    "./views/pages/admin/rules": "./src/views/pages/admin/rules.tsx",
+    "./views/pages/admin/commissions": "./src/views/pages/admin/commissions.tsx",
+    "./views/pages/admin/events": "./src/views/pages/admin/events.tsx",
+    "./views/components/badge": "./src/views/components/badge.tsx",
+    "./views/components/form-field": "./src/views/components/form-field.tsx",
+    "./views/components/alert": "./src/views/components/alert.tsx"
   },
   "scripts": {
     "dev": "bun --watch src/index.ts",
