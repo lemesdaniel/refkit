@@ -12,7 +12,9 @@ docker compose up -d
 
 The app runs migrations automatically on startup.
 
-### 1. Create admin account
+### 1. Create admin account and login
+
+Open `http://localhost:3000/panel/login` in your browser. On first access, you'll need to set up the admin account:
 
 ```bash
 curl -X POST http://localhost:3000/admin/setup \
@@ -20,28 +22,22 @@ curl -X POST http://localhost:3000/admin/setup \
   -d '{"password": "your-secure-password"}'
 ```
 
-### 2. Login
+Then login at `http://localhost:3000/panel/login` with your password.
 
-```bash
-curl -X POST http://localhost:3000/admin/auth \
-  -H "Content-Type: application/json" \
-  -d '{"password": "your-secure-password"}'
-# Returns: { "token": "eyJ..." }
-```
+### 2. Create your program
 
-### 3. Create your program
+Go to **Program** in the admin panel, fill in your product name and website URL, and save. Your API key will be generated automatically.
+
+Or via API:
 
 ```bash
 curl -X PUT http://localhost:3000/admin/program \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{"name": "My Product", "websiteUrl": "https://myproduct.com", "cookieDays": 30}'
-# Returns: { "program": { "id": "...", "apiKey": "..." } }
 ```
 
-Save the `apiKey` -- your backend uses it to report events.
-
-### 4. Add the script to your website
+### 3. Add the script to your website
 
 ```html
 <script src="https://your-refkit-host/refkit.js" data-program="PROGRAM_ID"></script>
@@ -72,6 +68,10 @@ Refkit resolves the visitor to the referring affiliate and calculates the commis
 
 ### 6. Set up commission rules
 
+Go to **Rules** in the admin panel and add a commission rule (e.g. 30% on "sale" events).
+
+Or via API:
+
 ```bash
 curl -X POST http://localhost:3000/admin/commission-rules \
   -H "Content-Type: application/json" \
@@ -95,9 +95,37 @@ curl -X POST http://localhost:3000/admin/commission-rules \
 6. If found: creates commission based on matching commission_rule
 ```
 
+## Web Panel
+
+Refkit includes a built-in admin panel and affiliate portal — no separate frontend needed.
+
+### Admin Panel (`/panel`)
+
+- **Dashboard** — active affiliates, recent events, pending commissions
+- **Program** — edit name, URL, cookie days, view API key
+- **Affiliates** — invite, activate/deactivate, view all
+- **Rules** — create and manage commission rules per event
+- **Commissions** — view all, mark as paid
+- **Events** — event log
+
+### Affiliate Portal (`/portal`)
+
+Affiliates login via magic link (no password):
+
+1. Go to `http://localhost:3000/portal/login` and enter email
+2. Receive a 1-hour login link via email
+3. Dashboard shows: referral link, clicks, pending/paid commissions
+4. Configure payout email in Payout settings
+
+### Join Page (`/join/:program_id/form`)
+
+Public self-registration form for affiliates. Share the link and new affiliates can apply — they start with `pending` status and need admin approval.
+
 ## Managing Affiliates
 
-**Invite an affiliate:**
+**Via admin panel:** Go to **Affiliates**, click "Invite New Affiliate", fill in name, email, and slug.
+
+**Or via API:**
 ```bash
 curl -X POST http://localhost:3000/admin/affiliates/invite \
   -H "Content-Type: application/json" \
@@ -105,27 +133,27 @@ curl -X POST http://localhost:3000/admin/affiliates/invite \
   -d '{"name": "Daniel", "email": "daniel@example.com", "slug": "daniel"}'
 ```
 
-**Or let affiliates self-register:**
-Share your join page: `https://your-refkit-host/join/PROGRAM_ID`
-
-Self-registered affiliates start with `pending` status. Approve them:
-```bash
-curl -X PATCH http://localhost:3000/admin/affiliates/AFFILIATE_ID \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -d '{"status": "active"}'
-```
-
-## Affiliate Portal
-
-Affiliates access their dashboard via magic link (no password):
-
-1. Affiliate requests a login link: `POST /affiliate/magic-link` with `{"email": "..."}`
-2. They receive an email with a 1-hour link
-3. Link exchanges for a 7-day JWT
-4. Dashboard shows: clicks, commissions (pending/paid), payout info
+**Self-registration:** Share `https://your-refkit-host/join/PROGRAM_ID/form` — affiliates apply and you approve them in the panel.
 
 ## API Reference
+
+### Web UI
+
+| Route | Auth | Description |
+|-------|------|-------------|
+| `GET /panel/login` | -- | Admin login page |
+| `GET /panel` | Cookie | Admin dashboard |
+| `GET /panel/program` | Cookie | Program configuration |
+| `GET /panel/affiliates` | Cookie | Manage affiliates |
+| `GET /panel/rules` | Cookie | Commission rules |
+| `GET /panel/commissions` | Cookie | View/pay commissions |
+| `GET /panel/events` | Cookie | Event log |
+| `GET /portal/login` | -- | Affiliate login (magic link) |
+| `GET /portal` | Cookie | Affiliate dashboard |
+| `GET /portal/payout` | Cookie | Payout settings |
+| `GET /join/:program_id/form` | -- | Affiliate self-signup form |
+
+### JSON API
 
 | Route | Auth | Description |
 |-------|------|-------------|
@@ -187,6 +215,7 @@ bun run build:script # Build refkit.js client script
 - **Framework:** Hono
 - **ORM:** Drizzle
 - **Database:** PostgreSQL
+- **Admin UI:** Hono JSX (server-rendered) + Pico CSS
 - **Client script:** Vanilla JS (~1KB minified)
 - **Self-host:** Docker Compose
 
